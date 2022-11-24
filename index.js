@@ -19,23 +19,31 @@ console.log(uri)
 
 async function run() {
     try {
-        const buyerCollection = client.db("remart").collection("buyers");
+        const usersCollection = client.db("remart").collection("users");
 
-        app.put("/buyers", async (req, res) => {
-            const buyer = req.body;
-            const email = buyer.email;
+        app.put("/users", async (req, res) => {
+            const user = req.body;
+            const email = user.email;
             const filter = { email: email }
             const updateDoc = {
-                $set: buyer
+                $set: user
             }
-            console.log(buyer)
-
-            const result = await buyerCollection.updateOne(filter, updateDoc, { upsert: true })
-
+            const result = await usersCollection.updateOne(filter, updateDoc, { upsert: true })
             // generate token
             const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: "7d" })
 
             res.send({ result, token });
+        })
+        app.get("/jwt/:email", async (req, res) => {
+            const email = req.params.email;
+            console.log(email);
+            const query = { email: email }
+            const result = await usersCollection.findOne(query);
+            if (result) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: "7d" })
+                res.send({ token });
+            }
+
         })
 
     } finally {
