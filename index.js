@@ -20,6 +20,7 @@ console.log(uri)
 async function run() {
     try {
         const usersCollection = client.db("remart").collection("users");
+        const categoryCollection = client.db('remart').collection("category");
 
         app.put("/users", async (req, res) => {
             const user = req.body;
@@ -44,6 +45,15 @@ async function run() {
                 res.send({ token });
             }
 
+        });
+
+        // products api ---------------------------------
+        //----------------------------------------------------
+        // load category
+        app.get("/category", async (req, res) => {
+            const query = {};
+            const result = await categoryCollection.find(query).toArray();
+            res.send(result);
         })
 
     } finally {
