@@ -21,7 +21,8 @@ async function run() {
     try {
         const usersCollection = client.db("remart").collection("users");
         const categoryCollection = client.db('remart').collection("category");
-
+        // users -------------------------
+        // users checking and jwt generation
         app.put("/users", async (req, res) => {
             const user = req.body;
             const email = user.email;
@@ -35,6 +36,7 @@ async function run() {
 
             res.send({ result, token });
         })
+        // jwt generation during login
         app.get("/jwt/:email", async (req, res) => {
             const email = req.params.email;
             console.log(email);
@@ -46,6 +48,26 @@ async function run() {
             }
 
         });
+        // role checking ------------------
+        // isAdmin
+        app.get("/users/admin/:email", async (req, res) => {
+            const email = req.params.email
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const isAdmin = { isAdmin: user?.role === "admin" }
+
+            console.log(isAdmin);
+            res.send(isAdmin);
+        })
+        app.get("/users/seller/:email", async (req, res) => {
+            const email = req.params.email
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const isSeller = { isSeller: user?.role === "seller" }
+
+            console.log(isSeller);
+            res.send(isSeller);
+        })
 
         // products api ---------------------------------
         //----------------------------------------------------
