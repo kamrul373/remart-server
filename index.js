@@ -15,12 +15,27 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lbqhd62.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-console.log(uri)
+function verifyJWT(req, res, next) {
+    const authHeaders = req.headers.authorization;
+    if (!authHeaders) {
+        return res.status(401).send({ message: "Uaauthorized Access" })
+    }
+    const token = authHeaders.split(" ")[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (error, decoded) {
+        if (error) {
+            return res.status(403).send({ message: "Forbidden Access" })
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 
 async function run() {
     try {
         const usersCollection = client.db("remart").collection("users");
         const categoryCollection = client.db('remart').collection("category");
+        const productsCollection = client.db("remart").collection("products");
         // users -------------------------
         // users checking and jwt generation
         app.put("/users", async (req, res) => {
@@ -68,13 +83,43 @@ async function run() {
             console.log(isSeller);
             res.send(isSeller);
         })
-
+        // user role verification 
+        async function verifySeller(req, res, next) {
+            const email = req.decoded.email;
+            const query = {
+                email: email
+            }
+            const user = await usersCollection.findOne(query);
+            if (user.role === "seller") {
+                next();
+            } else {
+                res.status(403).send({ message: "You are not seller" })
+            }
+        }
+        // verify admin
+        async function verifyAdmin(req, res, next) {
+            const email = req.decoded.email;
+            const query = {
+                email: email
+            }
+            const user = await usersCollection.findOne(query);
+            if (user.role === "admin") {
+                next();
+            } else {
+                res.status(403).send({ message: "You are not admin" })
+            }
+        }
         // products api ---------------------------------
         //----------------------------------------------------
         // load category
         app.get("/category", async (req, res) => {
             const query = {};
             const result = await categoryCollection.find(query).toArray();
+            res.send(result);
+        });
+        app.post("/product", verifyJWT, verifySeller, async (req, res) => {
+            const query = req.body;
+            const result = await productsCollection.insertOne(query);
             res.send(result);
         })
 
