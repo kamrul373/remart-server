@@ -167,6 +167,14 @@ async function run() {
             const result = await bookingCollection.insertOne(query);
             res.send(result);
         })
+        // getting orders 
+        app.get("/orders", verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const query = { customerEmail: email }
+            const result = await bookingCollection.find(query).toArray();
+            console.log(result)
+            res.send(result)
+        })
         // advertise ------------------------------
         app.get("/advertise/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
