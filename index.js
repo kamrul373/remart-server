@@ -55,7 +55,7 @@ async function run() {
         // jwt generation during login
         app.get("/jwt/:email", async (req, res) => {
             const email = req.params.email;
-            console.log(email);
+            //console.log(email);
             const query = { email: email }
             const result = await usersCollection.findOne(query);
             if (result) {
@@ -72,7 +72,7 @@ async function run() {
             const user = await usersCollection.findOne(query);
             const isAdmin = { isAdmin: user?.role === "admin" }
 
-            console.log(isAdmin);
+            //console.log(isAdmin);
             res.send(isAdmin);
         })
         app.get("/users/seller/:email", async (req, res) => {
@@ -81,7 +81,7 @@ async function run() {
             const user = await usersCollection.findOne(query);
             const isSeller = { isSeller: user?.role === "seller" }
 
-            console.log(isSeller);
+            //console.log(isSeller);
             res.send(isSeller);
         })
         // user role verification 
@@ -116,6 +116,7 @@ async function run() {
         app.get("/category", async (req, res) => {
             const query = {};
             const result = await categoryCollection.find(query).toArray();
+            console.log(result)
             res.send(result);
         });
         app.post("/product", verifyJWT, verifySeller, async (req, res) => {
@@ -124,7 +125,7 @@ async function run() {
             res.send(result);
         })
         // getting my products
-        app.get("/products/:email", verifyJWT, async (req, res) => {
+        app.get("/myproducts/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { sellerEmail: email }
             const result = await productsCollection.find(query).toArray();
@@ -135,11 +136,20 @@ async function run() {
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
+
         app.delete("/products/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(query);
             res.send(result);
+        })
+        // category base product 
+        app.get("/products/:cattegoryId", async (req, res) => {
+            const id = req.params.cattegoryId;
+            console.log(id);
+            const query = { categoryId: id, status: "unsold" }
+            const result = await productsCollection.find(query).toArray();
+            res.send(result)
         })
 
         // advertise 
