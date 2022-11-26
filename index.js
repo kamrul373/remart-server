@@ -37,6 +37,7 @@ async function run() {
         const usersCollection = client.db("remart").collection("users");
         const categoryCollection = client.db('remart').collection("category");
         const productsCollection = client.db("remart").collection("products");
+        const bookingCollection = client.db("remart").collection("bookings");
         // users -------------------------
         // users checking and jwt generation
         app.put("/users", async (req, res) => {
@@ -84,6 +85,7 @@ async function run() {
             //console.log(isSeller);
             res.send(isSeller);
         })
+
         // user role verification 
         async function verifySeller(req, res, next) {
             const email = req.decoded.email;
@@ -97,6 +99,14 @@ async function run() {
                 res.status(403).send({ message: "You are not seller" })
             }
         }
+        // getting seller verification status 
+        app.get("/verificationstatus/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await usersCollection.findOne(query);
+            const status = result.verified;
+            res.send({ status })
+        })
         // verify admin
         async function verifyAdmin(req, res, next) {
             const email = req.decoded.email;
@@ -146,13 +156,18 @@ async function run() {
         // category base product 
         app.get("/products/:cattegoryId", async (req, res) => {
             const id = req.params.cattegoryId;
-            console.log(id);
+            //console.log(id);
             const query = { categoryId: id, status: "unsold" }
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
-
-        // advertise 
+        // booking --------------------------------
+        app.post("/booking", async (req, res) => {
+            const query = req.body;
+            const result = await bookingCollection.insertOne(query);
+            res.send(result);
+        })
+        // advertise ------------------------------
         app.get("/advertise/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
