@@ -41,6 +41,8 @@ async function run() {
         const categoryCollection = client.db('remart').collection("category");
         const productsCollection = client.db("remart").collection("products");
         const bookingCollection = client.db("remart").collection("bookings");
+        const paymentsCollection = client.db("remart").collection("payments");
+
         // users -------------------------
         // users checking and jwt generation
         app.put("/users", async (req, res) => {
@@ -203,7 +205,7 @@ async function run() {
             const price = order.productPrice;
             console.log(price);
             const amount = price * 100;
-            console.log(amount);
+            //console.log(amount);
 
             const paymentIntent = await stripe.paymentIntents.create({
                 currency: "BDT",
@@ -215,6 +217,29 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret,
             });
+        })
+
+        app.post("/payments", verifyJWT, async (req, res) => {
+            const paymentData = req.body;
+            console.log(paymentData);
+            const result = await paymentsCollection.insertOne(paymentData);
+            // updating booking payment status
+            const bookingId = paymentData.bookingId;
+            const filter = { _id: ObjectId(bookingId) };
+            const updateDoc = {
+                $set: { status: true }
+            }
+            const bookingstatusUpdate = await bookingCollection.updateOne(filter, updateDoc);
+            // updating product 
+            const productId = paymentData.productId;
+            const query = { _id: ObjectId(productId) };
+            const doc = {
+                $set: { status: "sold" }
+            }
+            const productUpdate = await productsCollection.updateOne(query, doc);
+
+            res.send(result)
+
         })
 
 
