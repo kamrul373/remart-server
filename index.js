@@ -42,6 +42,8 @@ async function run() {
         const productsCollection = client.db("remart").collection("products");
         const bookingCollection = client.db("remart").collection("bookings");
         const paymentsCollection = client.db("remart").collection("payments");
+        const reportsCollection = client.db("remart").collection("reports");
+
 
         // users -------------------------
         // users checking and jwt generation
@@ -245,6 +247,27 @@ async function run() {
 
             res.send(result)
 
+        })
+
+        // report to admin ---------------------------
+        app.post("/report", verifyJWT, async (req, res) => {
+            // Who report 
+            const data = req.body;
+            const reportedProductData = {
+                productId: data.productId,
+                productName: data.productName,
+                reporterEmail: data.email,
+                reporterName: data.name,
+                report: data.message,
+            }
+            console.log(reportedProductData);
+            const result = await reportsCollection.insertOne(reportedProductData)
+            res.send(result);
+        });
+        app.get("/report", verifyJWT, verifyAdmin, async (req, res) => {
+            const query = {}
+            const result = await reportsCollection.find(query).toArray();
+            res.send(result);
         })
 
 
