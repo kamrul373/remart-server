@@ -60,6 +60,23 @@ async function run() {
 
             res.send({ result, token });
         })
+        // getting users based on user role
+        app.get("/users", async (req, res) => {
+            const role = req.query.role;
+            if (role) {
+                const query = { role: role }
+                const result = await usersCollection.find(query).toArray();
+                res.send(result);
+            }
+        })
+
+        app.delete("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const userid = req.params.id;
+            console.log(userid);
+            const query = { _id: ObjectId(userid) }
+            const result = await usersCollection.deleteOne(query);
+            res.send(result);
+        })
         // jwt generation during login
         app.get("/jwt/:email", async (req, res) => {
             const email = req.params.email;
