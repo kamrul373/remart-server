@@ -138,6 +138,7 @@ async function run() {
         });
         app.post("/product", verifyJWT, verifySeller, async (req, res) => {
             const query = req.body;
+            console.log(query);
             const result = await productsCollection.insertOne(query);
             res.send(result);
         })
@@ -156,6 +157,7 @@ async function run() {
         // deleting product
         app.delete("/products/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
+            console.log(id);
             const query = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(query);
             res.send(result);
@@ -267,6 +269,12 @@ async function run() {
         app.get("/report", verifyJWT, verifyAdmin, async (req, res) => {
             const query = {}
             const result = await reportsCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.delete("/report/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await reportsCollection.deleteOne(query);
             res.send(result);
         })
 
