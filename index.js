@@ -151,7 +151,7 @@ async function run() {
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
-
+        // deleting product
         app.delete("/products/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -163,6 +163,11 @@ async function run() {
             const id = req.params.cattegoryId;
             //console.log(id);
             const query = { categoryId: id, status: "unsold" }
+            const result = await productsCollection.find(query).toArray();
+            res.send(result)
+        });
+        app.get("/advertisedproducts", async (req, res) => {
+            const query = { advertise: true, status: "unsold" }
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
