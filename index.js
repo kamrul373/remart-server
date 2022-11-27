@@ -76,6 +76,21 @@ async function run() {
             const query = { _id: ObjectId(userid) }
             const result = await usersCollection.deleteOne(query);
             res.send(result);
+        });
+        // verifying seller by admin
+        app.put("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const userid = req.params.id;
+            const filter = { _id: ObjectId(userid) }
+            const updateDoc = {
+                $set: {
+                    verified: true
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc);
+
+            console.log(result);
+
+            res.send(result);
         })
         // jwt generation during login
         app.get("/jwt/:email", async (req, res) => {
