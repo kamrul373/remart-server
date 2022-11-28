@@ -61,7 +61,7 @@ async function run() {
             res.send({ result, token });
         })
         // getting users based on user role
-        app.get("/users", async (req, res) => {
+        app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const role = req.query.role;
             if (role) {
                 const query = { role: role }
@@ -165,17 +165,17 @@ async function run() {
         app.get("/category", async (req, res) => {
             const query = {};
             const result = await categoryCollection.find(query).toArray();
-            console.log(result)
+            //console.log(result)
             res.send(result);
         });
         app.post("/product", verifyJWT, verifySeller, async (req, res) => {
             const query = req.body;
-            console.log(query);
+            //console.log(query);
             const result = await productsCollection.insertOne(query);
             res.send(result);
         })
         // getting my products
-        app.get("/myproducts/:email", verifyJWT, async (req, res) => {
+        app.get("/myproducts/:email", verifyJWT, verifySeller, async (req, res) => {
             const email = req.params.email;
             const query = { sellerEmail: email }
             const result = await productsCollection.find(query).toArray();
@@ -189,7 +189,7 @@ async function run() {
         // deleting product
         app.delete("/products/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            //console.log(id);
             const query = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(query);
             res.send(result);
@@ -202,6 +202,7 @@ async function run() {
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         });
+        // getting ads product
         app.get("/advertisedproducts", async (req, res) => {
             const query = { advertise: true, status: "unsold" }
             const result = await productsCollection.find(query).toArray();
@@ -218,7 +219,7 @@ async function run() {
             const email = req.query.email;
             const query = { customerEmail: email }
             const result = await bookingCollection.find(query).toArray();
-            console.log(result)
+            //console.log(result)
             res.send(result)
         });
         // getting data of single order / booking
@@ -244,7 +245,7 @@ async function run() {
         app.post("/create-payment-intent", async (req, res) => {
             const order = req.body;
             const price = order.productPrice;
-            console.log(price);
+            //console.log(price);
             const amount = price * 100;
             //console.log(amount);
 
@@ -262,7 +263,7 @@ async function run() {
 
         app.post("/payments", verifyJWT, async (req, res) => {
             const paymentData = req.body;
-            console.log(paymentData);
+            //console.log(paymentData);
             const result = await paymentsCollection.insertOne(paymentData);
             // updating booking payment status
             const bookingId = paymentData.bookingId;
@@ -294,7 +295,7 @@ async function run() {
                 reporterName: data.name,
                 report: data.message,
             }
-            console.log(reportedProductData);
+            //console.log(reportedProductData);
             const result = await reportsCollection.insertOne(reportedProductData)
             res.send(result);
         });
